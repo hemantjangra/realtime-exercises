@@ -37,6 +37,40 @@ async function getNewMsgs() {
    * code goes here
    *
    */
+  let reader;
+  const utfDecoder = new TextDecoder('utf-8');
+  try {
+    const data = await fetch("/msgs");
+    reader = data.body.getReader();
+  }catch (error){
+    console.log('error while streaming data is ', error);
+  }
+  presence.innerText = '🟢';
+  let done;
+  do {
+    let responseReader;
+    try {
+      responseReader = await reader.read();
+    } catch (error) {
+      console.error('error while streaming', error);
+      presence.innerText = '🔴';
+      return;
+    }
+
+    const chunk = utfDecoder.decode(responseReader.value, { stream: true });
+    done = responseReader.done;
+    console.log('data while streaming is ', chunk);
+    if(chunk){
+      try{
+        const json = JSON.parse(chunk);
+        allChat = json.msg;
+        render();
+      }catch (error) {
+        console.log('parse error while streaming is: ', error);
+      }
+    }
+  }while(!done);
+  presence.innerText = '🔴';
 }
 
 function render() {

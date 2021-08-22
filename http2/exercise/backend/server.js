@@ -11,7 +11,7 @@ const msg = new nanobuffer(50);
 const getMsgs = () => Array.from(msg).reverse();
 
 msg.push({
-  user: "brian",
+  user: "hemant",
   text: "hi",
   time: Date.now(),
 });
@@ -34,6 +34,29 @@ const server = http2.createSecureServer({
  * Code goes here
  *
  */
+
+server.on('stream', (stream, headers)=>{
+  const path = headers[":path"];
+  const method = headers[":method"];
+
+  if(path ==="/msgs" && method === "GET"){
+    console.log('connected to stream: ', stream.id);
+
+    stream.respond({
+      'status': 200,
+      'content-type': 'text/plain; charset= utf-8'
+    });
+
+    stream.write(JSON.stringify({msg: getMsgs()}));
+    console.log('stream while reading the message', stream);
+    connections.push(stream);
+
+    stream.on('close',() => {
+      console.log("disconnected:", stream.id);
+      connections = connections.filter(connection => connection !== stream);
+    });
+  }
+})
 
 server.on("request", async (req, res) => {
   const path = req.headers[":path"];
@@ -58,6 +81,19 @@ server.on("request", async (req, res) => {
      * some code goes here
      *
      */
+
+     msg.push({
+       user,
+       text,
+       time: Date.now()
+     })
+
+     res.end();
+
+     connections.forEach(stream =>{
+       console.log('stream while writing message is', stream);
+       stream.write(JSON.stringify({msg: getMsgs() }));
+     })
   }
 });
 
