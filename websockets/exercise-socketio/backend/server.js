@@ -25,6 +25,27 @@ const server = http.createServer((request, response) => {
  *
  */
 
+const ws = new Server(server);
+
+ws.on('connect', (socket) =>{
+  console.log('server connected on ', socket.id);
+
+  socket.on('disconnect', (ev)=>{
+    console.log('server disconnected with id', socket.id);
+  });
+
+  socket.on('msg:post', (ev)=>{
+    console.log('data on server while post is', ev);
+    const{ user, text, time } = ev;
+    msg.push({user, text, time});
+    ws.emit('msg:get', {msg:(getMsgs())});
+  })
+
+  ws.emit('msg:get', {msg:(getMsgs())});
+});
+
+
+
 const port = process.env.PORT || 8080;
 server.listen(port, () =>
   console.log(`Server running at http://localhost:${port}`)
