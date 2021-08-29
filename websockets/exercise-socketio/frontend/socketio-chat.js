@@ -14,12 +14,12 @@ let allChat = [];
 const webSocket = io('http://localhost:8080', {});
 
 
-webSocket.on('connected', () =>{
+webSocket.on('connect', () =>{
   console.log('Client Connected');
-  presence.innerText('🟢');
+  presence.innerText='🟢';
 });
 
-webSocket.on('disconnected', () =>{
+webSocket.on('disconnect', () =>{
   console.log('client disconnected');
   presence.innerText = '🔴'
 });
